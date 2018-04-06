@@ -10,7 +10,7 @@ data Value = Literal  Word16
            | ConstRef String
 
 data Port = Mode Char Char (Maybe Value)
-          | LabelRef String
+          | LabelRef Char String
 
 data Line = PlainData [Value]
           | Instruction String (Maybe Port) (Maybe Port)
@@ -26,15 +26,20 @@ increaseWord n = modifyState (+ n)
 
 lexString :: Lexer [Line]
 lexString = do
-    line `sepBy1` newline
+    line `endBy1` (skipMany1 newline <|> comment)
+
+comment :: Lexer ()
+comment = do
+    _ <- skipMany separator
+    _ <- char ';'
+    _ <- manyTill anyChar newline
+    return ()
 
 line :: Lexer Line
-line = do
-    skipMany newline
-    try constDef <|>
-        try labelDef <|>
-        try instruction <|>
-        try plainData
+line = try constDef <|>
+    try labelDef <|>
+    try instruction <|>
+    try plainData
 
 constDef :: Lexer Line
 constDef = do
@@ -81,10 +86,11 @@ mode = do
 
 labelRef :: Lexer Port
 labelRef = do
-    _    <- char '.'
-    name <- many1 (letter <|> char '_')
+    direction <- option ':' (oneOf ":@")
+    _         <- char '.'
+    name      <- many1 (letter <|> char '_')
     increaseWord 1
-    return $ LabelRef name
+    return $ LabelRef direction name
 
 value :: Lexer Value
 value = try constRef <|> try literal

@@ -72,15 +72,15 @@ parsePort (L.Mode k d v) = do
     direction <- parseModeDirection d
     val       <- (sequence . fmap parseValue) v
     return $ Port (Mode kind direction) val
-
-parsePort (L.LabelRef name) = do
+parsePort (L.LabelRef dir name) = do
     s <- get
     case lookup name (labels s) of
         Just offset -> do
+            let val  = (fromIntegral offset) - (word_count s)
+            let kind = if val >= 0 then PcOffsetPositive else PcOffsetNegative
             increaseWord 1
-            let kind = if offset >= 0 then PcOffsetPositive else PcOffsetNegative
-            let val  = offset - (fromIntegral (word_count s))
-            return $ Port (Mode kind Indirect) (Just ((abs . fromIntegral) val))
+            direction <- parseModeDirection dir
+            return $ Port (Mode kind direction) (Just (fromIntegral (abs val)))
         Nothing -> throwError $ UndefinedLabel name
 
 parseModeKind :: Char -> Parser ModeKind
@@ -104,7 +104,9 @@ parseOpcode x = do
         Nothing  -> throwError $ IllegalOpcode x
 
 parseValue :: L.Value -> Parser Word16
-parseValue (L.Literal val)   = return val
+parseValue (L.Literal val)   = do
+    increaseWord 1
+    return val
 parseValue (L.ConstRef name) = do
     s <- get
     case lookup name (consts s) of
