@@ -1,6 +1,7 @@
 module Main where
 
 import System.Environment
+import System.IO
 import Control.Monad.Except
 import Data.Word
 import Data.Bits
@@ -26,13 +27,19 @@ assembleString s = do
 main :: IO ()
 main = do
     args <- getArgs
-    if length args /= 2
+    if length args == 2
     then do
-        programName <- getProgName
-        putStrLn $ "Usage: " ++ programName ++ " INPUT_FILE OUTPUT_FILE"
-        return ()
-    else do
-        file <- BS.readFile (args !! 0)
-        case assembleString file of
-            Left err  -> putStrLn $ show err
+        input <- BS.readFile (args !! 0)
+        case assembleString input of
+            Left err  -> hPutStrLn stderr (show err)
             Right val -> BS.writeFile (args !! 1) val
+    else if length args == 0
+        then do
+            input <- BS.getContents
+            case assembleString input of
+                Left err  -> hPutStrLn stderr (show err)
+                Right val -> BS.putStr val
+        else do
+            programName <- getProgName
+            putStrLn $ "Usage: " ++ programName ++ " INPUT_FILE OUTPUT_FILE"
+            putStrLn "\tWhen no arguments are given, stdin and stdout will be used."
