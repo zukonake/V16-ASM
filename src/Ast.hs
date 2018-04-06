@@ -1,6 +1,5 @@
 module Ast where
 
-import Foreign.Marshal.Utils
 import Data.Maybe
 import Data.Word
 import Data.Bits
@@ -86,17 +85,17 @@ instance Assemble Opcode where
     assemble Ado = [0x51];
 
 instance Assemble Direction where
-    assemble Direct   = [1]
-    assemble Indirect = [0]
+    assemble Direct   = [0x0]
+    assemble Indirect = [0x1]
 
 instance Assemble ModeKind where
-    assemble Memory           = [0o0];
-    assemble Register         = [0o1];
-    assemble RegisterPostIncr = [0o2];
-    assemble RegisterPreIncr  = [0o3];
-    assemble PcOffsetPositive = [0o4];
-    assemble PcOffsetNegative = [0o5];
-    assemble CarryFlag        = [0o6];
+    assemble Memory           = [0x0];
+    assemble Register         = [0x1];
+    assemble RegisterPostIncr = [0x2];
+    assemble RegisterPreIncr  = [0x3];
+    assemble PcOffsetPositive = [0x4];
+    assemble PcOffsetNegative = [0x5];
+    assemble CarryFlag        = [0x6];
 
 instance Assemble Mode where
     assemble (Mode kind indirect) = [((((head . assemble) indirect) `shift` 3)) .|.
