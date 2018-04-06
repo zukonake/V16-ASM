@@ -45,7 +45,7 @@ line = try constDef <|>
 constDef :: Lexer Line
 constDef = do
     _     <- char '$'
-    name  <- many1 letter
+    name  <- ident
     skipMany1 separator
     val   <- unsigned
     return $ ConstDef name val
@@ -53,7 +53,7 @@ constDef = do
 labelDef :: Lexer Line
 labelDef = do
     _      <- char '.'
-    name   <- many1 (letter <|> char '_')
+    name   <- ident
     skipMany separator
     offset <- option 0 signed
     pos    <- getState
@@ -89,7 +89,7 @@ labelRef :: Lexer Port
 labelRef = do
     direction <- option ':' (oneOf ":@")
     _         <- char '.'
-    name      <- many1 (letter <|> char '_')
+    name      <- ident
     increaseWord 1
     return $ LabelRef direction name
 
@@ -98,9 +98,15 @@ value = try constRef <|> try literal
 
 constRef :: Lexer Value
 constRef = do
-    name <- many1 letter
+    name <- ident
     increaseWord 1
     return $ ConstRef name
+
+ident :: Lexer String
+ident = do
+    x  <- letter
+    xs <- many (alphaNum <|> oneOf "_-")
+    return (x:xs)
 
 literal :: Lexer Value
 literal = do
