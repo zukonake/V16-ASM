@@ -2,6 +2,7 @@ module Lexer where
 
 import Data.Word
 import Data.Int
+import qualified Data.ByteString as BS
 import Numeric
 
 import Text.Parsec hiding (Line)
@@ -19,7 +20,7 @@ data Line = PlainData [Value]
 
 type WordCount = Int
 
-type Lexer = Parsec String WordCount
+type Lexer = Parsec BS.ByteString WordCount
 
 increaseWord :: Int -> Lexer ()
 increaseWord n = modifyState (+ n)

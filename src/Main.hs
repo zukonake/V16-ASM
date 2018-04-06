@@ -17,7 +17,7 @@ encodeWords :: [Word16] -> BS.ByteString
 encodeWords xs = (BS.pack . map fromIntegral . foldr (++) [] . map encode) xs
     where encode x = [x .&. 0xFF, (x .&. 0xFF00) `shiftR` 8]
 
-assembleString :: String -> ThrowsError BS.ByteString
+assembleString :: BS.ByteString -> ThrowsError BS.ByteString
 assembleString s = do
     case runParser lexString 0 "lexer" s of
         Left err  -> throwError $ ParsecError err
@@ -32,7 +32,7 @@ main = do
         putStrLn $ "Usage: " ++ programName ++ " INPUT_FILE OUTPUT_FILE"
         return ()
     else do
-        file <- readFile (args !! 0)
+        file <- BS.readFile (args !! 0)
         case assembleString file of
             Left err  -> putStrLn $ show err
             Right val -> BS.writeFile (args !! 1) val
