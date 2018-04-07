@@ -33,8 +33,10 @@ data Opcode = Nop
             | Mul
             | Div
             | Mod
-            | Adi
-            | Ado
+            | Aib
+            | Aob
+            | Aiw
+            | Aow
 
 data ModeKind = Memory
               | Register
@@ -81,8 +83,10 @@ instance Assemble Opcode where
     assemble Mul = [0x42];
     assemble Div = [0x43];
     assemble Mod = [0x44];
-    assemble Adi = [0x50];
-    assemble Ado = [0x51];
+    assemble Aib = [0x50];
+    assemble Aob = [0x51];
+    assemble Aiw = [0x52];
+    assemble Aow = [0x53];
 
 instance Assemble Direction where
     assemble Direct   = [0x0]
@@ -138,8 +142,10 @@ instance ReadMaybe Opcode where
     readMaybe "mul" = Just Mul;
     readMaybe "div" = Just Div;
     readMaybe "mod" = Just Mod;
-    readMaybe "adi" = Just Adi;
-    readMaybe "ado" = Just Ado;
+    readMaybe "aib" = Just Aib;
+    readMaybe "aob" = Just Aob;
+    readMaybe "aiw" = Just Aiw;
+    readMaybe "aow" = Just Aow;
     readMaybe _     = Nothing;
 
 instance ReadMaybe ModeKind where
