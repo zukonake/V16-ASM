@@ -19,6 +19,8 @@ instance Assemble Opcode Word16 where
     assemble Ter = 0x02;
     assemble Cll = 0x03;
     assemble Ret = 0x04;
+    assemble Psh = 0x05;
+    assemble Pop = 0x06;
     assemble Mov = 0x10;
     assemble Cpy = 0x11;
     assemble Swp = 0x12;

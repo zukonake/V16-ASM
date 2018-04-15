@@ -11,6 +11,8 @@ instance ReadMaybe Opcode where
     readMaybe "ter" = Just Ter;
     readMaybe "cll" = Just Cll;
     readMaybe "ret" = Just Ret;
+    readMaybe "psh" = Just Psh;
+    readMaybe "pop" = Just Pop;
     readMaybe "mov" = Just Mov;
     readMaybe "cpy" = Just Cpy;
     readMaybe "swp" = Just Swp;

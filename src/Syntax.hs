@@ -7,6 +7,8 @@ data Opcode = Nop
             | Ter
             | Cll
             | Ret
+            | Psh
+            | Pop
             | Mov
             | Cpy
             | Swp
