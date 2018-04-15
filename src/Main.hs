@@ -12,7 +12,7 @@ import Text.Parsec.Prim
 import Error
 import Lexer
 import Parser
-import Assemble
+import Assembler
 
 encodeWords :: [Word16] -> BS.ByteString
 encodeWords xs = (BS.pack . map fromIntegral . foldr (++) [] . map encode) xs
@@ -22,7 +22,7 @@ assembleString :: BS.ByteString -> ThrowsError BS.ByteString
 assembleString s = do
     case runParser lexString 0 "lexer" s of
         Left err  -> throwError $ ParsecError err
-        Right val -> (readLines val) >>= (return . encodeWords . concat . map assemble)
+        Right val -> (readLines val) >>= (return . encodeWords . assembleNodes)
 
 main :: IO ()
 main = do

@@ -6,7 +6,7 @@ import Control.Monad.Except
 import Control.Monad.State.Strict
 
 import qualified Lexer as L
-import Ast
+import Syntax
 import Error
 import ReadMaybe
 
@@ -37,7 +37,7 @@ addConstDef x = modify (\s -> s{consts = x:(consts s)})
 addLabelDef :: LabelDef -> Parser ()
 addLabelDef x = modify (\s -> s{labels = x:(labels s)})
 
-readLines :: [L.Line] -> ThrowsError [Line]
+readLines :: [L.Line] -> ThrowsError [Node]
 readLines xs = do
     let (val, env) = runState (runExceptT (preprocessLines xs)) defaultEnv
     val >>= (\x -> evalState (runExceptT (parseLines x)) env)
@@ -52,7 +52,7 @@ preprocessLines ((L.LabelDef k v):xs) = do
     preprocessLines xs
 preprocessLines (x:xs) = fmap ((:) x) (preprocessLines xs)
 
-parseLines :: [L.Line] -> Parser [Line]
+parseLines :: [L.Line] -> Parser [Node]
 parseLines [] = return []
 parseLines ((L.PlainData val):xs) = do
     values <- (sequence . map parseValue) val
@@ -89,7 +89,7 @@ parseModeKind x = do
         Just val -> return val
         Nothing  -> throwError $ IllegalModeKind [x]
 
-parseModeDirection :: Char -> Parser Direction
+parseModeDirection :: Char -> Parser ModeDir
 parseModeDirection x = do
     case readMaybe [x] of
         Just val -> return val

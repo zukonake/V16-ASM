@@ -1,7 +1,9 @@
 module Lexer where
 
-import Data.Word
-import Data.Int
+import Data.Char (digitToInt)
+import Data.Word (Word16)
+import Data.Int  (Int16)
+import Data.List (foldl')
 import qualified Data.ByteString as BS
 import Numeric
 
@@ -31,7 +33,7 @@ lexString = do
 
 comment :: Lexer ()
 comment = do
-    _ <- skipMany separator
+    _ <- optional separator
     _ <- char ';'
     _ <- manyTill anyChar newline
     return ()
@@ -44,17 +46,19 @@ line = try constDef <|>
 
 constDef :: Lexer Line
 constDef = do
-    _     <- char '$'
+    _     <- string "@const"
+    separator
     name  <- ident
-    skipMany1 separator
+    separator
     val   <- unsigned
     return $ ConstDef name val
 
 labelDef :: Lexer Line
 labelDef = do
-    _      <- char '.'
+    _      <- string "@label"
+    separator
     name   <- ident
-    skipMany separator
+    optional separator
     offset <- option 0 signed
     pos    <- getState
     return $ LabelDef name $ fromIntegral (pos + (fromIntegral offset) + 1)
@@ -63,9 +67,9 @@ instruction :: Lexer Line
 instruction = do
     opcode <- count 3 letter
     increaseWord 1
-    skipMany separator
+    optional separator
     portA  <- optionMaybe port
-    skipMany separator
+    optional separator
     portB  <- optionMaybe port
     return $ Instruction opcode portA portB
 
@@ -80,18 +84,21 @@ port = try mode <|> try labelRef
 
 mode :: Lexer Port
 mode = do
-    kind      <- letter
-    direction <- oneOf ":@"
+    kind      <- option 'L' letter
+    direction <- modeDir
     val       <- optionMaybe value
     return $ Mode kind direction val
 
 labelRef :: Lexer Port
 labelRef = do
-    direction <- option ':' (oneOf ":@")
-    _         <- char '.'
+    direction <- modeDir
+    _         <- char '@'
     name      <- ident
     increaseWord 1
     return $ LabelRef direction name
+
+modeDir :: Lexer Char
+modeDir = option ':' $ oneOf ":&"
 
 value :: Lexer Value
 value = try constRef <|> try literal
@@ -122,9 +129,16 @@ signed = do
 
 unsigned :: Lexer Word16
 unsigned = do
-    optional $ string "0x"
-    val <- many1 hexDigit
-    (return . fst . head . readHex) val
+    optional $ char '0'
+    base <- option 'd' (char 'x' <|> char 'd' <|> char 'o' <|> char 'b')
+    let (character, reader) = case base of
+            'd' -> (digit,      fst . head . readDec)
+            'x' -> (hexDigit,   fst . head . readHex)
+            'o' -> (octDigit,   fst . head . readOct)
+            'b' -> (oneOf "01", foldl' (\acc x -> acc * 2 + digitToInt x) 0)
+            _   -> error "Invalid base parsed"
+    val <- many1 character
+    (return . fromIntegral . reader) val
 
-separator :: Lexer Char
-separator = oneOf "\t "
+separator :: Lexer ()
+separator = skipMany1 $ oneOf "\t "
