@@ -1,0 +1,30 @@
+push @from
+push @to
+push  :4
+call @memcpy
+
+@label from
+0x0123 0x4567
+0x89AB 0xCDEF
+
+@label to
+0x0000 0x0000
+0x0000 0x0000
+
+@label memcpy
+@const FROM 0x0001
+@const TO   0x0002
+@const SIZE 0x0003
+
+pop  R:SPR
+pop  R:SIZE
+pop  R:TO
+pop  R:FROM
+copy  :0x0000 R:ITR
+
+@label loop
+copy A&FROM   A&TO
+ifgq B:ITR    R:SIZE
+jump @loop
+push R:SPR
+ret

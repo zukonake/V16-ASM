@@ -24,8 +24,15 @@ type WordCount = Int
 
 type Lexer = Parsec BS.ByteString WordCount
 
-increaseWord :: Int -> Lexer ()
-increaseWord n = modifyState (+ n)
+portSize :: Maybe Port -> Int
+portSize (Just (Mode _ _ (Just _))) = 1
+portSize (Just (LabelRef _ _))      = 1
+portSize _                          = 0
+
+increaseWord :: Line -> Lexer ()
+increaseWord (PlainData xs)      = modifyState (+ (length xs))
+increaseWord (Instruction _ x y) = modifyState (+ (1 + portSize x + portSize y))
+increaseWord _                   = return ()
 
 lexString :: Lexer [Line]
 lexString = do
@@ -39,25 +46,28 @@ comment = do
     return ()
 
 line :: Lexer Line
-line = try constDef <|>
-    try labelDef <|>
-    try instruction <|>
-    try plainData
+line = do
+    val <- try constDef <|>
+           try labelDef <|>
+           try instruction <|>
+           try plainData
+    increaseWord val
+    return val
 
 constDef :: Lexer Line
 constDef = do
     _     <- string "@const"
     separator
-    name  <- ident
+    name  <- ident <?> "const identifier"
     separator
-    val   <- unsigned
+    val   <- unsigned <?> "const value"
     return $ ConstDef name val
 
 labelDef :: Lexer Line
 labelDef = do
     _      <- string "@label"
     separator
-    name   <- ident
+    name   <- ident <?> "label identifier"
     optional separator
     offset <- option 0 signed
     pos    <- getState
@@ -65,8 +75,7 @@ labelDef = do
 
 instruction :: Lexer Line
 instruction = do
-    opcode <- count 3 letter
-    increaseWord 1
+    opcode <- ident <?> "opcode"
     optional separator
     portA  <- optionMaybe port
     optional separator
@@ -76,7 +85,6 @@ instruction = do
 plainData :: Lexer Line
 plainData = do
     val <- value `sepBy` (many1 separator)
-    increaseWord (length val)
     return $ PlainData val
 
 port :: Lexer Port
@@ -91,22 +99,20 @@ mode = do
 
 labelRef :: Lexer Port
 labelRef = do
-    direction <- modeDir
+    direction <- option ':' modeDir
     _         <- char '@'
-    name      <- ident
-    increaseWord 1
+    name      <- ident <?> "label reference identifier"
     return $ LabelRef direction name
 
 modeDir :: Lexer Char
-modeDir = option ':' $ oneOf ":&"
+modeDir = oneOf ":&"
 
 value :: Lexer Value
 value = try constRef <|> try literal
 
 constRef :: Lexer Value
 constRef = do
-    name <- ident
-    increaseWord 1
+    name <- ident <?> "const reference identifier"
     return $ ConstRef name
 
 ident :: Lexer String
@@ -118,7 +124,6 @@ ident = do
 literal :: Lexer Value
 literal = do
     val <- unsigned
-    increaseWord 1
     return $ Literal val
 
 signed :: Lexer Int16
@@ -130,7 +135,7 @@ signed = do
 unsigned :: Lexer Word16
 unsigned = do
     optional $ char '0'
-    base <- option 'd' (char 'x' <|> char 'd' <|> char 'o' <|> char 'b')
+    base <- option 'd' (char 'x' <|> char 'd' <|> char 'o' <|> char 'b') <?> "numeric base"
     let (character, reader) = case base of
             'd' -> (digit,      fst . head . readDec)
             'x' -> (hexDigit,   fst . head . readHex)

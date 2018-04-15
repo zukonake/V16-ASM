@@ -3,37 +3,37 @@ module Syntax where
 import Data.Word
 
 data Opcode = Nop
-            | Jmp
-            | Ter
-            | Cll
+            | Jump
+            | Term
+            | Call
             | Ret
-            | Psh
+            | Push
             | Pop
-            | Mov
-            | Cpy
-            | Swp
-            | Ieq
-            | Inq
-            | Igt
-            | Ilt
-            | Igq
-            | Ilq
+            | Move
+            | Copy
+            | Swap
+            | Ifeq
+            | Ifnq
+            | Ifgt
+            | Iflt
+            | Ifgq
+            | Iflq
             | Neg
             | Or
             | And
             | Xor
-            | Rsh
-            | Lsh
-            | Spb
+            | Rshf
+            | Lshf
+            | Swpb
             | Add
             | Sub
             | Mul
             | Div
             | Mod
-            | Aib
-            | Aob
-            | Aiw
-            | Aow
+            | Adbi
+            | Adbo
+            | Adwi
+            | Adwo
 
 data ModeKind = Literal
               | Register
