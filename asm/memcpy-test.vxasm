@@ -2,6 +2,7 @@ push @from
 push @to
 push  :4
 call @memcpy
+term  :0
 
 @label from
 0x0123 0x4567

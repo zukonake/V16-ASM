@@ -134,14 +134,13 @@ signed = do
 
 unsigned :: Lexer Word16
 unsigned = do
-    optional $ char '0'
-    base <- option 'd' (char 'x' <|> char 'd' <|> char 'o' <|> char 'b') <?> "numeric base"
+    base <- (option "0d" (try (string "0x") <|> try (string "0o") <|> try (string "0b"))) <?> "numeric base"
     let (character, reader) = case base of
-            'd' -> (digit,      fst . head . readDec)
-            'x' -> (hexDigit,   fst . head . readHex)
-            'o' -> (octDigit,   fst . head . readOct)
-            'b' -> (oneOf "01", foldl' (\acc x -> acc * 2 + digitToInt x) 0)
-            _   -> error "Invalid base parsed"
+            "0d" -> (digit,      fst . head . readDec)
+            "0x" -> (hexDigit,   fst . head . readHex)
+            "0o" -> (octDigit,   fst . head . readOct)
+            "0b" -> (oneOf "01", foldl' (\acc x -> acc * 2 + digitToInt x) 0)
+            _    -> error "Invalid base parsed"
     val <- many1 character
     (return . fromIntegral . reader) val
 
