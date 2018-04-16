@@ -18,12 +18,9 @@ data Env = Env {consts     :: [ConstDef],
                 word_count :: Int}
 
 defaultEnv :: Env
-defaultEnv = Env {consts = [("ITR", 0x0000),
-                            ("ARR", 0x0001),
-                            ("SPR", 0x000C),
-                            ("OPR", 0x000D),
-                            ("SAR", 0x000F),
-                            ("SBR", 0x000F)],
+defaultEnv = Env {consts = [("SPR", 0xD),
+                            ("SAR", 0xF),
+                            ("SBR", 0xF)],
                   labels = [],
                   word_count = 0x0000}
 
