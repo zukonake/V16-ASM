@@ -9,11 +9,11 @@ maintainer:          zukonake@protonmail.com
 -- copyright:           
 -- category:            
 build-type:          Simple
-extra-source-files:  ChangeLog.md
+extra-source-files:  ChangeLog.md, vortex
 cabal-version:       >=1.10
 
 library
-  exposed-modules:     Error, Lexer, Parser, Assembler, Syntax
+  exposed-modules:     Vortex, Error, Lexer, Parser, Assembler, Syntax
   hs-source-dirs:      src
   build-depends:       base >=4.9 && <4.10
                      , parsec
@@ -21,6 +21,10 @@ library
                      , mtl
   ghc-options:         -dynamic -Wall
   default-language:    Haskell2010
+  c-sources:           vortex/vortex.c
+  include-dirs:        vortex
+  includes:            vortex.h
+  install-includes:    vortex.h
 
 executable vx-asm
   main-is:             Main.hs
@@ -31,14 +35,7 @@ executable vx-asm
                      , mtl
   ghc-options:         -dynamic -Wall
   default-language:    Haskell2010
-
---test-suite test
---  type:                exitcode-stdio-1.0
---  hs-source-dirs:      test
---  main-is:             Spec.hs
---  build-depends:       base >=4.9 && <4.10
---                     , hspec
---                     , QuickCheck
---                     , v16-asm
---  ghc-options:         -dynamic -Wall
---  default-language:    Haskell2010
+  c-sources:           vortex/vortex.c
+  include-dirs:        vortex
+  includes:            vortex.h
+  install-includes:    vortex.h

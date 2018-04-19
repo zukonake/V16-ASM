@@ -2,51 +2,12 @@ module Syntax where
 
 import Data.Word
 
-data Opcode = Nop
-            | Jump
-            | Term
-            | Call
-            | Ret
-            | Push
-            | Pop
-            | Move
-            | Copy
-            | Swap
-            | Ifeq
-            | Ifnq
-            | Ifgt
-            | Iflt
-            | Ifgq
-            | Iflq
-            | Neg
-            | Or
-            | And
-            | Xor
-            | Rshf
-            | Lshf
-            | Swpb
-            | Add
-            | Sub
-            | Mul
-            | Div
-            | Mod
-            | Adbi
-            | Adbo
-            | Adwi
-            | Adwo
+type Opcode      = Word8;
+type ModeKind    = Word8;
+type ModeDir     = Word8;
+type Instruction = Word8;
 
-data ModeKind = Literal
-              | Register
-              | RegisterPostIncr
-              | RegisterPreIncr
-              | PcOffsetPositive
-              | PcOffsetNegative
-              | CarryFlag
-
-data ModeDir = Direct
-             | Indirect
-
-data Mode = Mode ModeKind ModeDir
+type Mode = (ModeDir, ModeKind)
 
 data Port = Port Mode (Maybe Word16)
 

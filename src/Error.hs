@@ -7,8 +7,8 @@ data Error = MultipleConstDefs    String
            | UndefinedConst       String
            | UndefinedLabel       String
            | IllegalOpcode        String
-           | IllegalModeKind      String
-           | IllegalModeDirection String
+           | IllegalModeKind      Char
+           | IllegalModeDirection Char
            | ParsecError          ParseError
            | DefaultError         String
 
@@ -18,8 +18,8 @@ instance Show Error where
     show (UndefinedConst    name) = "Undefined const reference " ++ name
     show (UndefinedLabel    name) = "Undefined label reference " ++ name
     show (IllegalOpcode     name) = "Illegal opcode " ++ name
-    show (IllegalModeKind   name) = "Illegal mode kind " ++ name
-    show (IllegalModeDirection d) = "Illegal mode direction " ++ d
+    show (IllegalModeKind   name) = "Illegal mode kind " ++ [name]
+    show (IllegalModeDirection d) = "Illegal mode direction " ++ [d]
     show (ParsecError message)    = "Parsec error at " ++ show message
     show (DefaultError message)   = show message
 

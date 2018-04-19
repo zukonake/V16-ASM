@@ -8,7 +8,7 @@ import Control.Monad.State.Strict
 import qualified Lexer as L
 import Syntax
 import Error
-import ReadMaybe
+import Vortex
 
 type ConstDef = (String, Word16)
 type LabelDef = (String, Int16)
@@ -78,35 +78,31 @@ parsePort (L.Mode k d v) = do
     kind      <- parseModeKind k
     direction <- parseModeDirection d
     val       <- (sequence . fmap parseValue) v
-    return $ Port (Mode kind direction) val
+    return $ Port (kind, direction) val
 parsePort (L.LabelRef dir name) = do
     s <- get
     case lookup name (labels s) of
         Just offset -> do
             let val  = (fromIntegral offset) - (word_count s + 1) -- 1, because we count the opcode
-            let kind = if val >= 0 then PcOffsetPositive else PcOffsetNegative
+            kind <- if val >= 0
+                    then (ExceptT . return . asmMk) 'P'
+                    else (ExceptT . return . asmMk) 'N'
             direction <- parseModeDirection dir
-            return $ Port (Mode kind direction) (Just (fromIntegral (abs val)))
+            return $ Port (kind, direction) (Just (fromIntegral (abs val)))
         Nothing -> throwError $ UndefinedLabel name
 
 parseModeKind :: Char -> Parser ModeKind
-parseModeKind x = do
-    case readMaybe [x] of
-        Just val -> return val
-        Nothing  -> throwError $ IllegalModeKind [x]
+parseModeKind x = (ExceptT . return . asmMk) x
 
 parseModeDirection :: Char -> Parser ModeDir
 parseModeDirection x = do
-    case readMaybe [x] of
-        Just val -> return val
-        Nothing  -> throwError $ IllegalModeDirection [x]
+    case x of
+        ':' -> return $ 0
+        '&' -> return $ 1
+        _   -> throwError $ IllegalModeDirection x
 
 parseOpcode :: String -> Parser Opcode
-parseOpcode x = do
-    case readMaybe x of
-        Just val -> do
-            return val
-        Nothing  -> throwError $ IllegalOpcode x
+parseOpcode x = (ExceptT . return . asmOp) x
 
 parseValue :: L.Value -> Parser Word16
 parseValue (L.Literal val)   = do

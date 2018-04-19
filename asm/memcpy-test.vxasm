@@ -1,16 +1,9 @@
+@label _exec
 push @from
 push @to
 push  :4
 call @memcpy
 term  :0
-
-@label from
-0x0123 0x4567
-0x89AB 0xCDEF
-
-@label to
-0x0000 0x0000
-0x0000 0x0000
 
 @label memcpy
 @const FROM 0x0001
@@ -21,11 +14,21 @@ pop  R:SPR
 pop  R:SIZE
 pop  R:TO
 pop  R:FROM
-copy  :0x0000 R:ITR
+copy  :0x0000 R:0x0
 
 @label loop
 copy A&FROM   A&TO
-ifgq B:ITR    R:SIZE
+ifgq B:0x0    R:SIZE
 jump @loop
 push R:SPR
 ret
+
+@label _data
+@label from
+0x0123 0x4567
+0x89AB 0xCDEF
+
+@label to
+0x0000 0x0000
+0x0000 0x0000
+

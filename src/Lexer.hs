@@ -105,7 +105,7 @@ labelRef = do
     return $ LabelRef direction name
 
 modeDir :: Lexer Char
-modeDir = oneOf ":&"
+modeDir = oneOf "&:"
 
 value :: Lexer Value
 value = try constRef <|> try literal
@@ -117,8 +117,8 @@ constRef = do
 
 ident :: Lexer String
 ident = do
-    x  <- letter
-    xs <- many (alphaNum <|> oneOf "_-")
+    x  <- letter <|> char '_'
+    xs <- many (alphaNum <|> char '_')
     return (x:xs)
 
 literal :: Lexer Value
